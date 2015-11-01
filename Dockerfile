@@ -25,7 +25,13 @@ RUN mkdir -p /usr/src/ut2004 \
     && echo "$UT2004_PATCH_DOWNLOAD_SHA1 ut2004_patch.tar.bz2" | sha1sum -c - \
     && unzip ut2004.zip -d /usr/src/ut2004 \
     && tar -xvjf ut2004_patch.tar.bz2 -C /usr/src/ut2004 UT2004-Patch/ --strip-components=1 \
-    && rm ut2004.zip ut2004_patch.tar.bz2
+    && rm ut2004.zip ut2004_patch.tar.bz2 \
+    # Fix broken CSS
+    # See: http://forums.tripwireinteractive.com/showpost.php?p=585435&postcount=13
+    && sed -i 's/none}/none;/g' "/usr/src/ut2004/Web/ServerAdmin/ut2003.css" \
+    && sed -i 's/underline}/underline;/g' "/usr/src/ut2004/Web/ServerAdmin/ut2003.css" \
+    # Enable the admin
+    && sed -i 's/bEnabled=False/bEnabled=True\r\nMaxConnections=500/g' "/usr/src/ut2004/System/UT2004.ini"
 
 WORKDIR /usr/src/ut2004/System
 ENV PATH=$PATH:/usr/src/ut2004/System
@@ -35,4 +41,4 @@ COPY docker-entrypoint.sh /entrypoint.sh
 EXPOSE 7777/udp 7778/udp 7787/udp 28902 80
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["ucc-bin-linux-amd64", "server", "DM-Morpheus3?game=XGame.xDeathMatch?AdminName=myname?AdminPassword=mypass", "ini=UT2004.ini", "-nohomedir"]
+CMD ["ucc-bin", "server", "DM-Morpheus3?game=XGame.xDeathMatch?AdminName=myname?AdminPassword=mypass", "ini=UT2004.ini", "-nohomedir"]
