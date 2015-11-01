@@ -4,9 +4,7 @@ RUN dpkg --add-architecture i386 && apt-get update && apt-get install -y \
         curl \
         ca-certificates \
         lib32gcc1 \
-        libstdc++5 \
         libstdc++5:i386 \
-        libstdc++6 \
         libstdc++6:i386 \
         libsdl1.2debian \
         bzip2 \
