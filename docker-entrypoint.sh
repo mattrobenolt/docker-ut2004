@@ -4,7 +4,8 @@ set -e
 
 if [ "$1" = 'ucc-bin' ]; then
     # Put cdkey in place
-    echo $CDKEY > /usr/src/ut2004/System/cdkey
+    echo $CDKEY > cdkey
+    envtpl UT2004.ini.tpl
 fi
 
 exec "$@"

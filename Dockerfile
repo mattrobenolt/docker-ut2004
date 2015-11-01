@@ -9,6 +9,16 @@ RUN dpkg --add-architecture i386 \
             libsdl1.2debian \
         && rm -rf /var/lib/apt/lists/*
 
+# Install envtpl
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+        && rm -rf /var/lib/apt/lists/* \
+        && curl -sSL https://github.com/mattrobenolt/envtpl/releases/download/0.1.0/envtpl-linux-amd64 -o envtpl \
+        && sha1sum envtpl \
+        && echo "90c40d624e0ce40d62a0ac132767bcd6c267ed55 envtpl" | sha1sum -c - \
+        && chmod +x envtpl \
+        && mv envtpl /usr/local/bin/ \
+        && apt-get purge -y --auto-remove curl
+
 ENV UT2004_DOWNLOAD_URL http://gameservermanagers.com/files/ut2004/dedicatedserver3339-bonuspack.zip
 ENV UT2004_DOWNLOAD_SHA1 e1eda562d99e66a7e5972f05bbf0de8733bf60c9
 ENV UT2004_PATCH_DOWNLOAD_URL http://gameservermanagers.com/files/ut2004/ut2004-lnxpatch3369-2.tar.bz2
@@ -30,9 +40,12 @@ RUN buildDeps='curl bzip2 unzip' \
         # See: http://forums.tripwireinteractive.com/showpost.php?p=585435&postcount=13
         && sed -i 's/none}/none;/g' "/usr/src/ut2004/Web/ServerAdmin/ut2003.css" \
         && sed -i 's/underline}/underline;/g' "/usr/src/ut2004/Web/ServerAdmin/ut2003.css" \
-        # Enable the admin
-        && sed -i 's/bEnabled=False/bEnabled=True\r\nMaxConnections=500/g' "/usr/src/ut2004/System/UT2004.ini" \
+        # Remove the included ini config
+        && rm /usr/src/ut2004/System/UT2004.ini \
         && apt-get purge -y --auto-remove $buildDeps
+
+# Add in our config template
+COPY UT2004.ini.tpl /usr/src/ut2004/System/
 
 WORKDIR /usr/src/ut2004/System
 ENV PATH=$PATH:/usr/src/ut2004/System
@@ -42,4 +55,4 @@ COPY docker-entrypoint.sh /entrypoint.sh
 EXPOSE 7777/udp 7778/udp 7787/udp 28902 80
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["ucc-bin", "server", "DM-Morpheus3?game=XGame.xDeathMatch?AdminName=myname?AdminPassword=mypass", "ini=UT2004.ini", "-nohomedir"]
+CMD ["ucc-bin", "server", "DM-Morpheus3?game=XGame.xDeathMatch", "ini=UT2004.ini", "-nohomedir"]
